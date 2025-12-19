@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Provider from "../Provider";
-import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
+import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "SPS Mega Mart - Apke Zaruraton Ka Sathi ...",
@@ -13,17 +14,16 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
-      <body
-      >
+      <body>
         <AppRouterCacheProvider>
-        <Provider>
-          {children}
-        </Provider>
+          <Suspense fallback={null}>
+            <Provider>{children}</Provider>
+          </Suspense>
         </AppRouterCacheProvider>
       </body>
     </html>
