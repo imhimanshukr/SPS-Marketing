@@ -36,6 +36,11 @@ const proxy = async (req: NextRequest) => {
     secret: process.env.NEXTAUTH_SECRET,
   });
 
+if (pathname === "/login" && token) {
+  return NextResponse.redirect(new URL("/", req.url));
+}
+
+  
   /**
    * Agar token nahi mila
    * matlab user logged-in nahi hai

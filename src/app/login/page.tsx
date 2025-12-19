@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { Eye, EyeOff, Mail, Lock, Loader2 } from "lucide-react";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 
@@ -14,14 +16,18 @@ type Errors = {
 
 const LoginForm = () => {
   const router = useRouter();
-  const session = useSession();
-  console.log("session: ", session);
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const [errors, setErrors] = useState<Errors>({});
   const [loading, setLoading] = useState(false);
+
+  const { data,  status } = useSession();
+  console.log("session: ", data);
+const searchParams = useSearchParams();
+const callbackUrl = searchParams.get("callbackUrl") || "/";
+
 
   /* Validation */
   const validate = () => {
@@ -44,33 +50,37 @@ const LoginForm = () => {
   };
 
   /* Login user */
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrors({});
+const handleLogin = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setErrors({});
 
-    if (!validate()) return;
+  if (!validate()) return;
 
-    try {
-      setLoading(true);
-      const res = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
-      if (res?.error) {
-        setErrors({ server: "Invalid email or password" });
-        setLoading(false);
-        return;
-      }
-      router.push("/");
-    } catch (error: any) {
-      console.log("login error: ", error);
-      const message = error || "Something went wrong";
-      setErrors({ server: message });
-    } finally {
-      setLoading(false);
+  try {
+    setLoading(true);
+
+    const res = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    });
+
+    if (res?.error) {
+      setErrors({ server: "Invalid email or password" });
     }
-  };
+  } catch (err) {
+    setErrors({ server: "Something went wrong"+ err });
+  } finally {
+    setLoading(false);
+  }
+};
+
+  useEffect(() => {
+  if (status === "authenticated") {
+    router.replace(callbackUrl);
+  }
+}, [status, callbackUrl, router]);
+
 
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-6">
