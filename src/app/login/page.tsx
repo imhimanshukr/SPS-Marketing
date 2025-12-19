@@ -26,8 +26,11 @@ const LoginForm = () => {
   const { data,  status } = useSession();
   console.log("session: ", data);
 const searchParams = useSearchParams();
-const callbackUrl = searchParams.get("callbackUrl") || "/";
+const rawCallbackUrl = searchParams.get("callbackUrl");
 
+const callbackUrl = rawCallbackUrl
+  ? new URL(rawCallbackUrl).pathname
+  : "/";
 
   /* Validation */
   const validate = () => {
