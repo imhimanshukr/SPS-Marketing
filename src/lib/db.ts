@@ -1,32 +1,39 @@
 import mongoose from "mongoose";
 
-const mongodbUrl = process.env.MONGODB_URL;
-
-if (!mongodbUrl) {
-  throw new Error("DB URL NOT FOUND!");
+declare global {
+  // eslint-disable-next-line no-var
+  var mongoose: {
+    conn: mongoose.Connection | null;
+    promise: Promise<mongoose.Connection> | null;
+  } | undefined;
 }
 
-let catchedConn = global.mongoose;
-if (!catchedConn) {
-  catchedConn = global.mongoose = { conn: null, promise: null };
+let cached = global.mongoose;
+
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
 }
 
 const connectDB = async () => {
-  if (catchedConn.conn) {
-    return catchedConn.conn;
-  }
-  if (!catchedConn.promise) {
-    catchedConn.promise = mongoose
-      .connect(mongodbUrl)
-      .then((conn) => conn.connection);
+  // ✅ ENV CHECK FUNCTION KE ANDAR
+  const mongodbUrl = process.env.MONGODB_URL;
+
+  if (!mongodbUrl) {
+    throw new Error("MONGODB_URL is missing");
   }
 
-  try {
-    const conn = await catchedConn.promise;
-    return conn;
-  } catch (error) {
-    console.log("DB ERROR", error);
+  if (cached.conn) {
+    return cached.conn;
   }
+
+  if (!cached.promise) {
+    cached.promise = mongoose
+      .connect(mongodbUrl)
+      .then((mongoose) => mongoose.connection);
+  }
+
+  cached.conn = await cached.promise;
+  return cached.conn;
 };
 
 export default connectDB;
