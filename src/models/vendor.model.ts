@@ -16,6 +16,7 @@ interface IOrderGroup {
 }
 
 interface IVendor {
+  userId: mongoose.Types.ObjectId;
   vendorName: string;
   logo?: string;
   productList: string[];
@@ -63,6 +64,12 @@ const orderGroupSchema = new mongoose.Schema<IOrderGroup>({
 
 const vendorSchema = new mongoose.Schema<IVendor>(
   {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
     vendorName: { type: String, required: true, trim: true },
     logo: String,
     productList: [{ type: String, trim: true }],

@@ -1,14 +1,23 @@
 import Vendor from "@/models/vendor.model";
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "../../../../../auth";
 
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const _id = searchParams.get("_id");
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
 
-    // If _id present → single vendor
-    if (_id) {
-      const vendor = await Vendor.findById(_id);
+    const { searchParams } = new URL(req.url);
+    const vendorId = searchParams.get("_id");
+
+    // Single vendor
+    if (vendorId) {
+      const vendor = await Vendor.findOne({
+        _id: vendorId,
+        userId: session.user.id,
+      });
 
       if (!vendor) {
         return NextResponse.json(
@@ -20,13 +29,15 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ vendor }, { status: 200 });
     }
 
-    // If _id not present → all vendors
-    const vendors = await Vendor.find();
+    // All vendors (ONLY LOGGED IN USER)
+    const vendors = await Vendor.find({
+      userId: session.user.id,
+    }).sort({ createdAt: -1 });
 
     return NextResponse.json({ vendors }, { status: 200 });
-  } catch (error) {
+  } catch (error: any) {
     return NextResponse.json(
-      { message: `Get Vendor Data Error: ${error}` },
+      { message: "Get vendor data failed", error: error.message },
       { status: 500 }
     );
   }

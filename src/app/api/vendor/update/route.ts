@@ -1,10 +1,16 @@
 import connectDB from "@/lib/db";
 import Vendor from "@/models/vendor.model";
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "../../../../../auth";
 
 export async function PATCH(req: NextRequest) {
   try {
     await connectDB();
+
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
 
     const { vendorId, vendorName, productList, logo } = await req.json();
 
@@ -15,7 +21,10 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    const vendor = await Vendor.findById(vendorId);
+    const vendor = await Vendor.findOne({
+      _id: vendorId,
+      userId: session.user.id,
+    });
 
     if (!vendor) {
       return NextResponse.json(
@@ -24,7 +33,6 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    // ✅ Update only provided fields
     if (vendorName !== undefined) vendor.vendorName = vendorName;
     if (logo !== undefined) vendor.logo = logo;
     if (Array.isArray(productList)) vendor.productList = productList;
