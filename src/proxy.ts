@@ -4,8 +4,8 @@ import { NextRequest, NextResponse } from "next/server";
 const proxy = async (req: NextRequest) => {
   const { pathname } = req.nextUrl;
 
+  // login / register / auth ko bypass
   const publicRoutes = ["/login", "/register", "/api/auth"];
-
   if (publicRoutes.some((path) => pathname.startsWith(path))) {
     return NextResponse.next();
   }
@@ -13,6 +13,7 @@ const proxy = async (req: NextRequest) => {
   const token = await getToken({
     req,
     secret: process.env.NEXTAUTH_SECRET,
+    secureCookie: process.env.NODE_ENV === "production",
   });
 
   if (!token) {
@@ -26,7 +27,7 @@ const proxy = async (req: NextRequest) => {
 
 export const config = {
   matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.png$).*)",
+    "/((?!api|_next|favicon.ico).*)",
   ],
 };
 
