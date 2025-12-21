@@ -21,7 +21,6 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    // 1️⃣ Vendor fetch
     const vendor = await Vendor.findOne({
       _id: vendorId,
       userId: session.user.id,
@@ -31,7 +30,6 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ message: "Vendor not found" }, { status: 404 });
     }
 
-    // 2️⃣ Find order
     const order = vendor.orderList.find(
       (o: any) => String(o.orderId) === String(orderId)
     );
@@ -40,18 +38,28 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ message: "Order not found" }, { status: 404 });
     }
 
-    // 3️⃣ Map rowId → row
-    const rowMap = new Map(
-      order.accordian.map((r: any) => [String(r._id), r])
-    );
+    // 🔑 map for fast lookup
+    const rowMap = new Map<string, any>();
+    order.accordian.forEach((r: any) => {
+      rowMap.set(String(r._id), r);
+    });
 
-    // 4️⃣ Build NEW ordered accordian
-    const reorderedAccordian = rows.map((r: any, index: number) => ({
-      ...rowMap.get(String(r.rowId)),
-      sno: index + 1,
-    }));
+    // ✅ SAFE reorder
+    const reorderedAccordian = [];
 
-    // 5️⃣ Keep NEW ROW at end (if exists)
+    for (let i = 0; i < rows.length; i++) {
+      const rowId = String(rows[i].rowId);
+      const originalRow = rowMap.get(rowId);
+
+      if (!originalRow) continue; // TS + runtime safety
+
+      reorderedAccordian.push({
+        ...originalRow,
+        sno: i + 1,
+      });
+    }
+
+    // 🧩 keep new row at end
     const newRow = order.accordian.find((r: any) => r.isNewRow);
     if (newRow) {
       reorderedAccordian.push({
@@ -60,9 +68,7 @@ export async function PATCH(req: NextRequest) {
       });
     }
 
-    // 6️⃣ Replace whole accordian
     order.accordian = reorderedAccordian;
-
     await vendor.save({ validateBeforeSave: false });
 
     return NextResponse.json(
