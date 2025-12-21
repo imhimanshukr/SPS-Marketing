@@ -41,6 +41,7 @@ import {
   verticalListSortingStrategy,
   arrayMove,
 } from "@dnd-kit/sortable";
+import Loader from "./mini-component/Loader";
 
 interface OrderRow {
   _id?: string;
@@ -65,9 +66,10 @@ const SingleOrderAccordion = ({ order, vendor, refreshVendors }: any) => {
   } | null>(null);
 
   const [isEditingName, setIsEditingName] = useState(false);
-  const [orderName, setOrderName] = useState(order?.orderListName || "");
   const [showAllRows, setShowAllRows] = useState(false);
   const [selectedRowIds, setSelectedRowIds] = useState<Set<string>>(new Set());
+  const [orderNameDraft, setOrderNameDraft] = useState("");
+  const [loading, setLoading] = useState<boolean>(false);
 
   const orderQtyRefs = useRef<Array<HTMLInputElement | null>>([]);
   const stockRefs = useRef<Array<HTMLInputElement | null>>([]);
@@ -158,66 +160,93 @@ const SingleOrderAccordion = ({ order, vendor, refreshVendors }: any) => {
 
   const handleSaveRow = async (row: OrderRow) => {
     if (!row.orderedProductName) return;
+    try {
+      setLoading(true);
 
-    await axios.post("/api/order-row/add", {
-      vendorId: vendor._id,
-      orderId: order.orderId,
-      row,
-    });
+      await axios.post("/api/order-row/add", {
+        vendorId: vendor._id,
+        orderId: order.orderId,
+        row,
+      });
 
-    await refreshVendors();
+      await refreshVendors();
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+    } finally {
+      setLoading(false);
+    }
   };
 
   /* Update ROW */
   const handleUpdateRow = async (row: OrderRow) => {
     if (!row._id) return;
+    try {
+      setLoading(true);
 
-    await axios.patch("/api/order-row/update", {
-      vendorId: vendor._id,
-      orderId: order.orderId,
-      rowId: row._id,
-      data: {
-        orderedProductName: row.orderedProductName,
-        orderQty: row.orderQty,
-        stock: row.stock,
-        isEditable: false,
-        isNewRow: false,
-      },
-    });
+      await axios.patch("/api/order-row/update", {
+        vendorId: vendor._id,
+        orderId: order.orderId,
+        rowId: row._id,
+        data: {
+          orderedProductName: row.orderedProductName,
+          orderQty: row.orderQty,
+          stock: row.stock,
+          isEditable: false,
+          isNewRow: false,
+        },
+      });
 
-    await refreshVendors();
+      await refreshVendors();
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+    } finally {
+      setLoading(false);
+    }
   };
 
   /* DELETE ROW */
   const handleDeleteRow = async () => {
     if (selectedRow && !selectedRow._id) return;
+    try {
+      setLoading(true);
 
-    await axios.delete("/api/order-row/delete", {
-      data: {
-        vendorId: vendor._id,
-        orderId: order.orderId,
-        rowId: selectedRow?._id,
-      },
-    });
+      await axios.delete("/api/order-row/delete", {
+        data: {
+          vendorId: vendor._id,
+          orderId: order.orderId,
+          rowId: selectedRow?._id,
+        },
+      });
 
-    await refreshVendors();
-    setSelectedRow(null);
-    setActionType(null);
+      await refreshVendors();
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+    } finally {
+      setSelectedRow(null);
+      setActionType(null);
+      setLoading(false);
+    }
   };
 
   /* Save Order Name */
   const saveOrderName = async () => {
     try {
+      setLoading(true);
       await axios.patch("/api/order/edit-name", {
         vendorId: vendor._id,
         orderId: order.orderId,
-        orderName,
+        orderName: orderNameDraft,
       });
 
       await refreshVendors();
       setIsEditingName(false);
-    } catch (err) {
-      console.error("Edit order name failed", err);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -234,9 +263,13 @@ const SingleOrderAccordion = ({ order, vendor, refreshVendors }: any) => {
       });
 
       await refreshVendors();
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
     } finally {
       setActionType(null);
       setTriggerData(null);
+      setLoading(false);
     }
   };
 
@@ -257,6 +290,7 @@ const SingleOrderAccordion = ({ order, vendor, refreshVendors }: any) => {
     if (!triggeredData) return;
 
     try {
+      setLoading(true);
       await axios.post("/api/order/copy", {
         vendorId: triggeredData.vendorId,
         orderId: triggeredData.orderId,
@@ -265,9 +299,11 @@ const SingleOrderAccordion = ({ order, vendor, refreshVendors }: any) => {
       await refreshVendors();
     } catch (err) {
       console.error("Copy failed", err);
+      setLoading(false);
     } finally {
       setActionType(null);
       setTriggerData(null);
+      setLoading(false);
     }
   };
 
@@ -284,30 +320,47 @@ const SingleOrderAccordion = ({ order, vendor, refreshVendors }: any) => {
 
   const copySelectedRows = async () => {
     if (!triggeredData || selectedRowIds.size === 0) return;
+    try {
+      setLoading(true);
 
-    await axios.post("/api/order/copy-selected", {
-      vendorId: triggeredData.vendorId,
-      orderId: triggeredData.orderId,
-      rowIds: Array.from(selectedRowIds),
-    });
+      await axios.post("/api/order/copy-selected", {
+        vendorId: triggeredData.vendorId,
+        orderId: triggeredData.orderId,
+        rowIds: Array.from(selectedRowIds),
+      });
 
-    setSelectedRowIds(new Set());
-    await refreshVendors();
-    setActionType(null);
+      setSelectedRowIds(new Set());
+      await refreshVendors();
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+    } finally {
+      setActionType(null);
+      setLoading(false);
+    }
   };
 
   const handlePrint = async () => {
-    const res = await axios.post(
-      "/api/order/print",
-      { vendorId: vendor._id, orderId: order.orderId },
-      { responseType: "blob" }
-    );
+    try {
+      setLoading(true);
 
-    const blob = new Blob([res.data], { type: "application/pdf" });
-    const url = URL.createObjectURL(blob);
-    const pdfWindow = window.open(url, "_blank");
-    if (!pdfWindow) {
-      alert("Popup blocked");
+      const res = await axios.post(
+        "/api/order/print",
+        { vendorId: vendor._id, orderId: order.orderId },
+        { responseType: "blob" }
+      );
+
+      const blob = new Blob([res.data], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const pdfWindow = window.open(url, "_blank");
+      if (!pdfWindow) {
+        alert("Popup blocked");
+      }
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -332,11 +385,14 @@ const SingleOrderAccordion = ({ order, vendor, refreshVendors }: any) => {
   }, [order]);
 
   useEffect(() => {
-    setOrderName(order?.orderListName || "");
-  }, [order]);
+    if (!isEditingName) {
+      setOrderNameDraft(order?.orderListName || "");
+    }
+  }, [order, isEditingName]);
 
   return (
     <>
+      <Loader open={loading} />
       <Accordion
         defaultExpanded
         sx={{
@@ -393,10 +449,10 @@ const SingleOrderAccordion = ({ order, vendor, refreshVendors }: any) => {
                 <>
                   <TextField
                     size="small"
-                    value={orderName}
+                    value={orderNameDraft}
                     autoFocus
                     onClick={(e) => e.stopPropagation()}
-                    onChange={(e) => setOrderName(e.target.value)}
+                    onChange={(e) => setOrderNameDraft(e.target.value)}
                     sx={{
                       background: "#fff",
                       borderRadius: "6px",

@@ -7,20 +7,29 @@ import { useState } from "react";
 import axios from "axios";
 import NoData from "./mini-component/NoData";
 import ConfirmDialog from "./mini-component/ConfirmDialog";
+import Loader from "./mini-component/Loader";
 
 const OrderList = ({ vendor, goBack, refreshVendors }: any) => {
   const [openDelete, setOpenDelete] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const vendorId = vendor?._id;
 
   /* ADD NEW ORDER */
   const handleNewOrder = async () => {
     if (!vendorId) return;
+    try {
+      setLoading(true);
+      await axios.post("/api/order/add", {
+        _id: vendorId,
+      });
 
-    await axios.post("/api/order/add", {
-      _id: vendorId,
-    });
-
-    await refreshVendors();
+      await refreshVendors();
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Delete all Order
@@ -32,11 +41,16 @@ const OrderList = ({ vendor, goBack, refreshVendors }: any) => {
       await refreshVendors();
       setOpenDelete(false);
     } catch (error) {
-      console.log("delete all", error);
+      console.log(error);
+      setLoading(false);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
+    <>
+    <Loader open={loading} />
     <Box sx={{ position: "relative", px: { xs: 1, sm: 2 }, mt: 1, pb: 8 }}>
       <Box
         sx={{
@@ -120,7 +134,7 @@ const OrderList = ({ vendor, goBack, refreshVendors }: any) => {
               textAlign: "center",
               lineHeight: 1.2,
               wordBreak: "break-word",
-              textTransform:'capitalize'
+              textTransform: "capitalize",
             }}
           >
             {vendor.vendorName}
@@ -180,6 +194,7 @@ const OrderList = ({ vendor, goBack, refreshVendors }: any) => {
         onConfirm={deleteAllOrder}
       />
     </Box>
+    </>
   );
 };
 
