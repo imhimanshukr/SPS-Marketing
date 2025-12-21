@@ -164,7 +164,12 @@ export default function VendorList({
                 lg: "repeat(6, minmax(180px, 1fr))",
               },
               mt: 2,
-              pb: "110px",
+              pb: "140px",
+              overscrollBehavior: "none",
+              scrollbarWidth: "none",
+              "&::-webkit-scrollbar": {
+                display: "none",
+              },
             }}
           >
             {vendorsData.map((vendor) => (
@@ -188,7 +193,7 @@ export default function VendorList({
             width: "100%",
             p: 2,
             background: "#fff",
-            boxShadow: "0 -6px 12px rgba(0,0,0,0.15)",
+            boxShadow: "none",
           }}
         >
           <button
