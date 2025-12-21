@@ -19,7 +19,6 @@ interface ConfirmDialogProps {
   description?: string;
   confirmText?: string;
   cancelText?: string;
-  loading?: boolean;
   onConfirm: () => void;
   onClose: () => void;
 }
@@ -27,9 +26,9 @@ interface ConfirmDialogProps {
 export default function ConfirmDialog({
   open,
   title = "Confirm Action",
-  description = "Do you want to delete this item?",
-  confirmText = "Delete",
-  cancelText = "Cancel",
+  description = "Do you want this action?",
+  confirmText = "Yes",
+  cancelText = "No",
   onConfirm,
   onClose,
 }: ConfirmDialogProps) {
@@ -40,6 +39,11 @@ export default function ConfirmDialog({
       maxWidth="xs"
       fullWidth
       PaperProps={{
+        component: "form",
+        onSubmit: (e: React.FormEvent) => {
+          e.preventDefault();
+          onConfirm();
+        },
         sx: {
           borderRadius: "16px",
           boxShadow: "0 20px 40px rgba(0,0,0,0.25)",
@@ -68,27 +72,25 @@ export default function ConfirmDialog({
       </DialogTitle>
 
       <DialogContent sx={{ px: 2, pb: 1 }}>
-        <Typography sx={{ color: "#c62828" }} color="text.secondary">
-          {description}
-        </Typography>
+        <Typography sx={{ color: "#c62828" }}>{description}</Typography>
       </DialogContent>
 
       <DialogActions sx={{ px: 2, pb: 2, gap: 1 }}>
         <Button
+          type="button"
           variant="outlined"
           fullWidth
           onClick={onClose}
-          sx={{
-            borderRadius: "10px",
-          }}
+          sx={{ borderRadius: "10px" }}
         >
           {cancelText}
         </Button>
 
         <Button
+          type="submit"
           variant="contained"
           fullWidth
-          onClick={onConfirm}
+          autoFocus
           sx={{
             borderRadius: "10px",
             backgroundColor: "#c62828",

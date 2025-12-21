@@ -20,19 +20,21 @@ import { SquarePlus } from "lucide-react";
 import axios from "axios";
 import NoData from "./mini-component/NoData";
 import ConfirmDialog from "./mini-component/ConfirmDialog";
-import Loader from "./mini-component/Loader";
 import { motion } from "framer-motion";
+import VendorGridSkeleton from "./mini-component/VendorGridSkeleton";
 
 const MemoProductCard = memo(ProductCard);
 
 interface IVendorData {
   vendorsData: any[];
   refreshVendors: () => void;
+  fetching: boolean;
 }
 
 export default function VendorList({
   vendorsData,
   refreshVendors,
+  fetching,
 }: IVendorData) {
   /* STATE */
   const [open, setOpen] = useState(false);
@@ -108,16 +110,15 @@ export default function VendorList({
   const handleAddVendor = async () => {
     try {
       setLoading(true);
+      resetDialog();
       await axios.post("/api/vendor/add", {
         vendorName,
         logo,
         productList,
       });
       await refreshVendors();
-      resetDialog();
     } catch (error) {
       console.log("error: ", error);
-      setLoading(false);
     } finally {
       setLoading(false);
     }
@@ -127,6 +128,7 @@ export default function VendorList({
     try {
       setLoading(true);
 
+      resetDialog();
       await axios.patch("/api/vendor/update", {
         vendorId: editingVendor._id,
         vendorName,
@@ -135,10 +137,8 @@ export default function VendorList({
       });
 
       await refreshVendors();
-      resetDialog();
     } catch (error) {
       console.log("error: ", error);
-      setLoading(false);
     } finally {
       setLoading(false);
     }
@@ -147,16 +147,14 @@ export default function VendorList({
   const handleDeleteVendor = async () => {
     try {
       setLoading(true);
-
+      resetDialog();
       await axios.delete("/api/vendor/delete", {
         data: { vendorId: editingVendor._id },
       });
 
       await refreshVendors();
-      resetDialog();
     } catch (error) {
       console.log("error: ", error);
-      setLoading(false);
     } finally {
       setLoading(false);
     }
@@ -164,10 +162,11 @@ export default function VendorList({
 
   return (
     <>
-      <Loader open={loading} />
       <Box sx={{ height: "100dvh", display: "flex", flexDirection: "column" }}>
         {/* ===== VENDOR GRID ===== */}
-        {vendorsData?.length ? (
+        {loading || fetching ? (
+          <VendorGridSkeleton count={10} />
+        ) : vendorsData?.length ? (
           <Box
             sx={{
               flex: 1,
@@ -223,6 +222,7 @@ export default function VendorList({
         >
           <button
             onClick={openAddDialog}
+            disabled={loading}
             className="w-full h-12 rounded-xl text-white font-semibold bg-red-700 hover:bg-red-800 cursor-pointer"
           >
             Add Vendor

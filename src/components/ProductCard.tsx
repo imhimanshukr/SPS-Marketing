@@ -56,10 +56,10 @@ export default function ProductCard({ vendor, onEditVendor }: IProps) {
             onEditVendor(vendor);
           }}
           sx={{
-            display: { xs: "none", md: "flex" }, // ❌ mobile pe hide
+            display: { xs: "none", md: "flex" },
             position: "absolute",
             bottom: 6,
-            left: 6,
+            right: 6,
             bgcolor: "rgba(0,0,0,0.45)",
             color: "#fff",
             borderRadius: "8px",

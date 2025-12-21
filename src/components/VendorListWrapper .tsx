@@ -14,19 +14,19 @@ export default function VendorWrapper() {
 
   const [vendors, setVendors] = useState([]);
   const [searchVal, setSearchVal] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(false);
 
   /** 🔄 GLOBAL REFRESH FUNCTION */
   const refreshVendors = async () => {
     try {
-      setLoading(true);
+      setFetching(true);
       const res = await axios.get("/api/vendor/all-details");
       setVendors(res.data.vendors);
       return res.data.vendors;
     } catch (err) {
       console.error("Refresh vendors failed", err);
     } finally {
-      setLoading(false);
+      setFetching(false);
     }
   };
 
@@ -51,8 +51,6 @@ export default function VendorWrapper() {
   return (
     <>
       {/* 🔥 GLOBAL LOADER */}
-      <Loader open={loading} />
-
       <Navbar
         searchVal={searchVal}
         setSearchVal={setSearchVal}
@@ -61,6 +59,7 @@ export default function VendorWrapper() {
 
       {selectedVendor ? (
         <OrderList
+          fetching={fetching}
           vendor={selectedVendor}
           refreshVendors={refreshVendors}
           goBack={() => {
@@ -69,6 +68,7 @@ export default function VendorWrapper() {
         />
       ) : (
         <VendorList
+          fetching={fetching}
           vendorsData={filteredVendors}
           refreshVendors={refreshVendors}
         />
