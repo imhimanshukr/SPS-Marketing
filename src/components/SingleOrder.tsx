@@ -22,7 +22,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import EditIcon from "@mui/icons-material/Edit";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import PrintIcon from "@mui/icons-material/Print";
-import DragHandleIcon from '@mui/icons-material/DragHandle';
+import DragHandleIcon from "@mui/icons-material/DragHandle";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { SquarePen, SquarePlus, Trash, Trash2 } from "lucide-react";
 import axios from "axios";
@@ -744,20 +744,17 @@ const SingleOrderAccordion = ({ order, vendor, refreshVendors }: any) => {
                                   )}
                                 {/* Drag */}
                                 {isMobile && !disabled && (
-                                  <IconButton
+                                  <div
                                     ref={setActivatorNodeRef}
                                     {...listeners}
-                                    size="medium"
-                                    sx={{
-                                      cursor: "grab",
-                                      width: 40,
-                                      height: 40,
-                                      ml: 0.5,
-                                      bgcolor: "rgba(0,0,0,0.08)",
+                                    style={{
+                                      marginLeft: 0.5,
                                     }}
                                   >
-                                    <DragHandleIcon />
-                                  </IconButton>
+                                    <DragHandleIcon
+                                      sx={{ fontSize: "50px", color: "brown" }}
+                                    />
+                                  </div>
                                 )}
                               </Box>
                             </TableCell>
