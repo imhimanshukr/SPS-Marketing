@@ -1,3 +1,5 @@
+"use client";
+
 import { memo, useState, useEffect, forwardRef } from "react";
 import { TextField } from "@mui/material";
 
@@ -7,6 +9,11 @@ interface CellInputProps {
   onCommit: (val: string) => void;
   onEnter?: (val: string) => void;
 }
+
+/* 🔥 Mobile detect (safe & simple) */
+const isMobile =
+  typeof window !== "undefined" &&
+  /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
 const CellInput = memo(
   forwardRef<HTMLInputElement, CellInputProps>(function CellInput(
@@ -21,20 +28,15 @@ const CellInput = memo(
 
     return (
       <TextField
-        type="text"
         size="small"
-        inputMode="numeric"
-        slotProps={{
-          htmlInput: {
-            pattern: "[0-9]*",
-          },
-        }}
         fullWidth
         value={localValue}
         disabled={disabled}
         inputRef={ref}
-        onChange={(e) => setLocalValue(e.target.value)}
-        onBlur={() => onCommit(localValue)}
+        type={isMobile ? "number" : "text"}   // 🔥 ONLY THIS MATTERS
+        inputMode="numeric"
+        onChange={(e) => setLocalValue(e.target.value)} // ❌ no sanitize
+        onBlur={() => onCommit(localValue)}             // ✅ string payload
         onKeyDown={(e) => {
           if (e.key === "Enter") {
             e.preventDefault();
@@ -46,6 +48,9 @@ const CellInput = memo(
           "& .MuiInputBase-input.Mui-disabled": {
             WebkitTextFillColor: "#000",
             opacity: 0.7,
+          },
+          "& input": {
+            textAlign: "center",
           },
         }}
       />
