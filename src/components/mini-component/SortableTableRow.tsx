@@ -8,32 +8,33 @@ import { CSS } from "@dnd-kit/utilities";
 const SortableTableRow = ({
   id,
   disabled,
+  isMobile,
   children,
 }: {
   id: string;
   disabled?: boolean;
-  children: React.ReactNode;
+  isMobile: boolean;
+  children: any;
 }) => {
   const {
     setNodeRef,
+    setActivatorNodeRef,
     attributes,
     listeners,
     transform,
     transition,
     isDragging,
-  } = useSortable({
-    id,
-    disabled,
-  });
+  } = useSortable({ id, disabled });
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
-    cursor: disabled ? "not-allowed" : "grab",
-    opacity: isDragging ? 0.85 : 1,
     background: isDragging ? "#f5f5f5" : "inherit",
-    touchAction: "none",
-    userSelect: "none",
+    cursor: isDragging
+      ? "grabbing"
+      : !isMobile && !disabled
+      ? "grab"
+      : "default",
   };
 
   return (
@@ -41,9 +42,11 @@ const SortableTableRow = ({
       ref={setNodeRef}
       style={style}
       {...attributes}
-      {...listeners}
+      {...(!isMobile && !disabled ? listeners : {})} // 👈 desktop row drag
     >
-      {children}
+      {typeof children === "function"
+        ? children({ setActivatorNodeRef, listeners, disabled })
+        : children}
     </TableRow>
   );
 };
