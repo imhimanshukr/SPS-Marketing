@@ -77,7 +77,7 @@ const SingleOrderAccordion = ({ order, vendor, refreshVendors }: any) => {
   /* DND SENSOR */
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: { distance: 6 },
+      activationConstraint: { distance: 4 },
     })
   );
 
@@ -586,6 +586,15 @@ const SingleOrderAccordion = ({ order, vendor, refreshVendors }: any) => {
                                 fullWidth
                                 variant="outlined"
                                 sx={{
+                                  "& input": {
+                                    pointerEvents: row.isEditable
+                                      ? "auto"
+                                      : "none",
+                                    userSelect: row.isEditable
+                                      ? "text"
+                                      : "none",
+                                    textTransform: "capitalize",
+                                  },
                                   "& .MuiInputBase-input": {
                                     textTransform: "capitalize",
                                   },

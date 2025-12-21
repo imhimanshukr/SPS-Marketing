@@ -33,10 +33,10 @@ const CellInput = memo(
         value={localValue}
         disabled={disabled}
         inputRef={ref}
-        type={isMobile ? "number" : "text"}   // 🔥 ONLY THIS MATTERS
+        type={isMobile ? "number" : "text"}
         inputMode="numeric"
-        onChange={(e) => setLocalValue(e.target.value)} // ❌ no sanitize
-        onBlur={() => onCommit(localValue)}             // ✅ string payload
+        onChange={(e) => setLocalValue(e.target.value)}
+        onBlur={() => onCommit(localValue)}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
             e.preventDefault();
@@ -45,12 +45,14 @@ const CellInput = memo(
           }
         }}
         sx={{
+          "& input": {
+            pointerEvents: disabled ? "none" : "auto",
+            userSelect: disabled ? "none" : "text",
+            textAlign: "center",
+          },
           "& .MuiInputBase-input.Mui-disabled": {
             WebkitTextFillColor: "#000",
             opacity: 0.7,
-          },
-          "& input": {
-            textAlign: "center",
           },
         }}
       />

@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { TableRow } from "@mui/material";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -25,12 +26,14 @@ const SortableTableRow = ({
     disabled,
   });
 
-  const style = {
+  const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
     cursor: disabled ? "not-allowed" : "grab",
     opacity: isDragging ? 0.85 : 1,
     background: isDragging ? "#f5f5f5" : "inherit",
+    touchAction: "none",
+    userSelect: "none",
   };
 
   return (
