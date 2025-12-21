@@ -744,17 +744,19 @@ const SingleOrderAccordion = ({ order, vendor, refreshVendors }: any) => {
                                   )}
                                 {/* Drag */}
                                 {isMobile && !disabled && (
-                                  <div
+                                  <Button
+                                    variant="contained"
                                     ref={setActivatorNodeRef}
                                     {...listeners}
                                     style={{
                                       marginLeft: 0.5,
+                                      background: "yellow",
                                     }}
                                   >
                                     <DragHandleIcon
                                       sx={{ fontSize: "50px", color: "brown" }}
                                     />
-                                  </div>
+                                  </Button>
                                 )}
                               </Box>
                             </TableCell>
