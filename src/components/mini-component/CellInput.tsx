@@ -48,7 +48,8 @@ const CellInput = memo(
           "& .MuiInputBase-input.Mui-disabled": {
             WebkitTextFillColor: "#000",
             opacity: 0.7,
-            pointerEvents: isMobile ? "none" : "default",
+            pointerEvents: "none",
+            userSelect: "none",
           },
         }}
       />

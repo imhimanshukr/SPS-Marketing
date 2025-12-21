@@ -38,6 +38,7 @@ import {
   useSensors,
   DragEndEvent,
   TouchSensor,
+  rectIntersection,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -82,12 +83,12 @@ const SingleOrderAccordion = ({ order, vendor, refreshVendors }: any) => {
   /* DND SENSOR */
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: { distance: 2 },
+      activationConstraint: isMobile ? undefined : { distance: 1 },
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 5,
-        tolerance: 5,
+        delay: 150,
+        tolerance: 8,
       },
     })
   );
@@ -520,13 +521,14 @@ const SingleOrderAccordion = ({ order, vendor, refreshVendors }: any) => {
           <Box
             sx={{
               maxHeight: showAllRows ? "unset" : 240,
-              overflowY: showAllRows ? "auto" : "auto",
+              overflowY: "auto",
               overflowX: "auto",
+              touchAction: isMobile ? "pan-y" : "auto",
             }}
           >
             <DndContext
               sensors={sensors}
-              collisionDetection={closestCenter}
+              collisionDetection={rectIntersection}
               onDragEnd={handleDragEnd}
             >
               <Table
@@ -608,9 +610,7 @@ const SingleOrderAccordion = ({ order, vendor, refreshVendors }: any) => {
                                       "& .MuiInputBase-input.Mui-disabled": {
                                         WebkitTextFillColor: "#000",
                                         opacity: 0.7,
-                                        pointerEvents: isMobile
-                                          ? "none"
-                                          : "default",
+                                        pointerEvents: "none",
                                       },
                                     }}
                                   />
@@ -744,19 +744,25 @@ const SingleOrderAccordion = ({ order, vendor, refreshVendors }: any) => {
                                   )}
                                 {/* Drag */}
                                 {isMobile && !disabled && (
-                                  <Button
-                                    variant="contained"
+                                  <Box
                                     ref={setActivatorNodeRef}
                                     {...listeners}
-                                    style={{
-                                      marginLeft: 0.5,
-                                      background: "yellow",
+                                    sx={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      width: 44,
+                                      height: 44,
+                                      ml: 0.5,
+                                      borderRadius: "8px",
+                                      backgroundColor: "rgba(0,0,0,0.08)",
+                                      touchAction: "none",
+                                      WebkitUserSelect: "none",
+                                      userSelect: "none",
                                     }}
                                   >
-                                    <DragHandleIcon
-                                      sx={{ fontSize: "50px", color: "brown" }}
-                                    />
-                                  </Button>
+                                    <DragHandleIcon sx={{ fontSize: 28 }} />
+                                  </Box>
                                 )}
                               </Box>
                             </TableCell>
