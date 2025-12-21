@@ -523,7 +523,6 @@ const SingleOrderAccordion = ({ order, vendor, refreshVendors }: any) => {
               maxHeight: showAllRows ? "unset" : 240,
               overflowY: "auto",
               overflowX: "auto",
-              touchAction: isMobile ? "pan-y" : "auto",
             }}
           >
             <DndContext
