@@ -21,6 +21,7 @@ import axios from "axios";
 import NoData from "./mini-component/NoData";
 import ConfirmDialog from "./mini-component/ConfirmDialog";
 import Loader from "./mini-component/Loader";
+import { motion } from "framer-motion";
 
 const MemoProductCard = memo(ProductCard);
 
@@ -48,6 +49,23 @@ export default function VendorList({
   const vendorNameRef = useRef<HTMLInputElement | null>(null);
   const logoRef = useRef<HTMLInputElement>(null);
   const productRef = useRef<HTMLInputElement>(null);
+
+  const cardVariants = {
+    hidden: {
+      opacity: 0,
+      y: 40,
+      scale: 0.96,
+    },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        duration: 0.45,
+        ease: "easeOut",
+      },
+    },
+  };
 
   /* HELPERS */
   const resetDialog = () => {
@@ -169,11 +187,22 @@ export default function VendorList({
             }}
           >
             {vendorsData.map((vendor) => (
-              <MemoProductCard
+              <motion.div
                 key={vendor._id}
-                vendor={vendor}
-                onEditVendor={openEditDialog}
-              />
+                variants={cardVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{
+                  once: false,
+                  amount: 0.25,
+                }}
+              >
+                <MemoProductCard
+                  key={vendor._id}
+                  vendor={vendor}
+                  onEditVendor={openEditDialog}
+                />
+              </motion.div>
             ))}
           </Box>
         ) : (
