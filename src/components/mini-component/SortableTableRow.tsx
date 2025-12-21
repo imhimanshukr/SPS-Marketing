@@ -8,7 +8,7 @@ import { CSS } from "@dnd-kit/utilities";
 const SortableTableRow = ({
   id,
   disabled,
-  isMobile,
+  isMobile = false,
   children,
 }: {
   id: string;
