@@ -20,14 +20,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: "Vendor not found" }, { status: 404 });
     }
 
-    const order = vendor.orderList.find(
-      (o: any) => o.orderId === orderId
-    );
+    const order = vendor.orderList.find((o: any) => o.orderId === orderId);
     if (!order) {
       return NextResponse.json({ message: "Order not found" }, { status: 404 });
     }
 
-    /* ================= ROWS ================= */
+    /* ================= DATA PREPARATION ================= */
     const rows = order.accordian
       .filter(
         (r: any) =>
@@ -40,94 +38,85 @@ export async function POST(req: NextRequest) {
         String(r.orderQty || ""),
       ]);
 
-    /* ================= DYNAMIC HEIGHT ================= */
-    const pageHeight = 30 + rows.length * 7 + 10;
+    /* ================= DYNAMIC HEIGHT CALCULATION ================= */
+    const estimatedHeight = 25 + (rows.length * 7) + 25;
+    const pageWidth = 72; 
 
-    /* ================= PDF ================= */
+    /* ================= PDF GENERATION ================= */
     const pdf = new jsPDF({
       orientation: "portrait",
       unit: "mm",
-      format: [80, pageHeight],
-      compress: false, 
+      format: [pageWidth, estimatedHeight],
+      hotfixes: ["px_scaling"],
     });
 
-    const pageWidth = pdf.internal.pageSize.getWidth();
+    const actualWidth = pdf.internal.pageSize.getWidth();
 
     /* ================= LOGO ================= */
-    const logoPath = path.join(process.cwd(), "public/logo.png");
-    const logoImg = await loadImage(logoPath);
-
-    const canvas = createCanvas(logoImg.width, logoImg.height);
-    const ctx = canvas.getContext("2d");
-    ctx.imageSmoothingEnabled = false; 
-    ctx.drawImage(logoImg, 0, 0);
-
-    const logoBase64 = canvas.toDataURL("image/png");
-    pdf.addImage(logoBase64, "PNG", 4, 2, 16, 16);
+    try {
+      const logoPath = path.join(process.cwd(), "public/logo.png");
+      const logoImg = await loadImage(logoPath);
+      const canvas = createCanvas(logoImg.width, logoImg.height);
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(logoImg, 0, 0);
+      const logoBase64 = canvas.toDataURL("image/png");
+      // Logo centered or left
+      pdf.addImage(logoBase64, "PNG", 5, 2, 12, 12);
+    } catch (e) {
+      console.log("Logo not found or failed to load, skipping...");
+    }
 
     /* ================= HEADER ================= */
-    pdf.setFont("courier", "bold"); 
-    pdf.setFontSize(14);
-    pdf.setTextColor(0, 0, 0);
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(12);
+    pdf.text(vendor.vendorName.toUpperCase(), actualWidth / 2, 8, { align: "center" });
 
-    pdf.text(vendor.vendorName.toUpperCase(), pageWidth / 2, 10, {
-      align: "center",
-    });
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(9);
+    pdf.text("7979769612, 8863811908", actualWidth / 2, 13, { align: "center" });
+    pdf.text("Thathopur, Baheri", actualWidth / 2, 17, { align: "center" });
 
-    pdf.setFontSize(10);
-    pdf.text("7979769612, 8863811908", pageWidth / 2, 15, {
-      align: "center",
-    });
-    pdf.text("Thathopur, Baheri", pageWidth / 2, 19, {
-      align: "center",
-    });
+    pdf.setLineWidth(0.1);
+    pdf.line(2, 20, actualWidth - 2, 20);
 
     /* ================= TABLE ================= */
     autoTable(pdf, {
-      startY: 25,
-      head: [["S.No", "Product", "Qty"]],
+      startY: 22,
+      head: [["S.N", "Product", "Qty"]],
       body: rows,
-      theme: "grid",
-      margin: { left: 4, right: 4 },
-
+      theme: "plain", 
+      margin: { left: 2, right: 2 },
       styles: {
-        font: "courier",  
-        fontSize: 10,    
-        fontStyle: "bold", 
-        cellPadding: 0.8, 
-        valign: "middle",
-        overflow: "linebreak",
+        font: "helvetica",
+        fontSize: 9,
+        cellPadding: 1,
         textColor: [0, 0, 0],
         lineColor: [0, 0, 0],
-        lineWidth: 0.6,   
+        lineWidth: 0.1,
       },
-
       headStyles: {
-        fontStyle: "bold",
-        fillColor: false,
+        fillColor: [240, 240, 240],
         textColor: [0, 0, 0],
-        lineWidth: 0.6,
+        fontStyle: "bold",
       },
-
       columnStyles: {
-        0: { cellWidth: 10, halign: "center" },
-        1: { cellWidth: 44 },
-        2: { cellWidth: 18, halign: "center" },
+        0: { cellWidth: 8, halign: "center" },
+        1: { cellWidth: "auto" },
+        2: { cellWidth: 12, halign: "center" },
       },
     });
 
     /* ================= FOOTER ================= */
-    const finalY =
-      ((pdf as any).lastAutoTable?.finalY || pageHeight - 8) + 5;
+    const finalY = (pdf as any).lastAutoTable.finalY + 8;
+    
+    pdf.setFont("helvetica", "italic");
+    pdf.setFontSize(8);
+    pdf.text("SPS - Aapke Zaruraton Ka Saathi", actualWidth / 2, finalY, {
+      align: "center",
+    });
 
-    pdf.setFont("courier", "bold");
-    pdf.setFontSize(9);
-    pdf.text(
-      "SPS - Aapke Zaruraton Ka Saathi",
-      pageWidth / 2,
-      finalY,
-      { align: "center" }
-    );
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(7);
 
     /* ================= RESPONSE ================= */
     const pdfBuffer = Buffer.from(pdf.output("arraybuffer"));
@@ -135,11 +124,12 @@ export async function POST(req: NextRequest) {
     return new NextResponse(pdfBuffer, {
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `inline; filename="${vendor.vendorName}.pdf"`,
+        "Content-Disposition": `inline; filename="bill.pdf"`,
       },
     });
+
   } catch (err) {
     console.error("PRINT ERROR:", err);
-    return NextResponse.json({ message: "Print failed" }, { status: 500 });
+    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
   }
 }
